@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Start Page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <h1>Hello World!</h1>
+        <div>
+            <form method="post" action="/awss3-filer/api/files" enctype="multipart/form-data">
+                <dl>
+                    <dt>File:</dt>
+                    <dd><input type="file" name="file"></dd>
+                    <dt>Path:</dt>
+                    <dd><input type="text" name="path"></dd>
+                    <dt>Filename:</dt>
+                    <dd><input type="text" name="filename"></dd>
+                </dl>
+                <button>Submit</button>
+            </form>
+        </div>
+    </body>
+</html>
