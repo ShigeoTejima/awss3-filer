@@ -11,10 +11,14 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.inject.Named;
 import jp.gr.java_conf.pekokun.awss3_filer.model.FileObject;
+import jp.gr.java_conf.pekokun.awss3_filer.model.User;
 
 @Dependent
 @Named
 public class FileService {
+
+    @Inject
+    private User currentUser;
 
     @Inject
     private AwsS3Service awsS3Service;
@@ -68,16 +72,16 @@ public class FileService {
     }
 
     public void createFolder(String diskId, String path) {
-        if (!FileObject.isFolder(path)) {
-            throw new IllegalArgumentException("path must be folder.");
-        }
         String bucketName = getBucketName(diskId);
         if (Objects.isNull(bucketName) || bucketName.isEmpty()) {
             throw new IllegalArgumentException("not specified bucketName.");
         }
+        if (Objects.isNull(path) || path.isEmpty()) {
+            throw new IllegalArgumentException("path must not be path.");
+        }
 
-        
-        FileObject folder = new FileObject(bucketName, path, "owner", 0, LocalDateTime.now(), new ByteArrayInputStream(new byte[0]));
+        String folderPath = FileObject.isFolder(path) ? path : path.concat("/");
+        FileObject folder = new FileObject(bucketName, folderPath, currentUser.getName(), 0, LocalDateTime.now(), new ByteArrayInputStream(new byte[0]));
         awsS3Service.registerFile(bucketName, folder);
     }
 
@@ -97,7 +101,7 @@ public class FileService {
         }
 
         Content content = toContent(contentStream);
-        FileObject fileObject = new FileObject(bucketName, parentPath.concat(fileName), "owner", content.size, LocalDateTime.now(), content.stream);
+        FileObject fileObject = new FileObject(bucketName, parentPath.concat(fileName), currentUser.getName(), content.size, LocalDateTime.now(), content.stream);
         awsS3Service.registerFile(bucketName, fileObject);
     }
 

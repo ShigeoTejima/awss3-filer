@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import jp.gr.java_conf.pekokun.awss3_filer.api.bean.FileObjectBean;
 import jp.gr.java_conf.pekokun.awss3_filer.model.FileObject;
+import jp.gr.java_conf.pekokun.awss3_filer.model.User;
 import jp.gr.java_conf.pekokun.awss3_filer.service.FileService;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -29,6 +30,9 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 public class FileResource {
 
     private static final String DISK_ID = "test";
+
+    @Inject
+    private User currentUser;
 
     @Inject
     private FileService fileService;
