@@ -13,6 +13,14 @@ public class FileObject {
 
     private InputStream contentStream;
 
+    public static boolean isFolder(String path) {
+        return (path != null && path.endsWith("/"));
+    }
+
+    public FileObject(String bucketName, String path) {
+        this(bucketName, path, null, 0, LocalDateTime.now());
+    }
+
     public FileObject(String bucketName, String path, String owner) {
         this(bucketName, path, owner, 0, LocalDateTime.now());
     }
@@ -83,8 +91,13 @@ public class FileObject {
             return "";
         }
 
-        int endIndex = this.path.endsWith("/") ? this.path.length() - 1 : this.path.length();
+        int endIndex = isFolder() ? this.path.length() - 1 : this.path.length();
         int index = this.path.lastIndexOf("/", endIndex - 1);
-        return this.path.substring(index + 1);
+        return this.path.substring(index + 1, endIndex);
     }
+
+    public boolean isFolder() {
+        return isFolder(this.path);
+    }
+
 }

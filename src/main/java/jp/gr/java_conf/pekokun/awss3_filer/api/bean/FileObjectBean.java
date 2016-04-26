@@ -1,27 +1,26 @@
 package jp.gr.java_conf.pekokun.awss3_filer.api.bean;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class FileObject {
+public class FileObjectBean {
 
     private String path;
     private String owner;
     private long size;
     private LocalDateTime lastModifiedAt;
 
-    public FileObject() {
+    public FileObjectBean() {
     }
 
-    public FileObject(String path, String owner) {
+    public FileObjectBean(String path, String owner) {
         this(path, owner, 0);
     }
 
-    public FileObject(String path, String owner, long size) {
+    public FileObjectBean(String path, String owner, long size) {
         this(path, owner, size, LocalDateTime.now());
     }
 
-    public FileObject(String path, String owner, long size, LocalDateTime lastModifiedAt) {
+    public FileObjectBean(String path, String owner, long size, LocalDateTime lastModifiedAt) {
         this.path = path;
         this.owner = owner;
         this.size = size;

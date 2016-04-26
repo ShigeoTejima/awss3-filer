@@ -7,14 +7,25 @@
     <body>
         <h1>Hello World!</h1>
         <div>
+            <h2>Upload File</h2>
             <form method="post" action="/awss3-filer/api/files" enctype="multipart/form-data">
                 <dl>
                     <dt>File:</dt>
                     <dd><input type="file" name="file"></dd>
                     <dt>Path:</dt>
-                    <dd><input type="text" name="path"></dd>
+                    <dd><input type="text" name="parentPath"></dd>
                     <dt>Filename:</dt>
                     <dd><input type="text" name="filename"></dd>
+                </dl>
+                <button>Submit</button>
+            </form>
+        </div>
+        <div>
+            <h2>Create Folder</h2>
+            <form method="post" action="/awss3-filer/api/files/folder" enctype="application/x-www-form-urlencoded">
+                <dl>
+                    <dt>Path:</dt>
+                    <dd><input type="text" name="folderPath"></dd>
                 </dl>
                 <button>Submit</button>
             </form>

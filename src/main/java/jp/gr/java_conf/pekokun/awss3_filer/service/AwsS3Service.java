@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,7 +25,6 @@ public class AwsS3Service {
         return getAmazonS3().doesBucketExist(name);
     }
 
-    // TODO path must be folder.(endwith is '/')
     public List<FileObject> getFiles(String bucketName, String path) {
         AmazonS3 amazonS3 = getAmazonS3();
 
@@ -35,23 +34,22 @@ public class AwsS3Service {
         request.setDelimiter("/");
 
         ObjectListing objectListing = amazonS3.listObjects(request);
-        objectListing.getCommonPrefixes().forEach(System.out::println);
 
         List<FileObject> fileObjects = new ArrayList<>();
         fileObjects.addAll(
             objectListing.getCommonPrefixes().stream()
-                .filter(dir -> !Objects.equals(dir, path) && !Objects.equals(dir, String.format("%s/", path)))
-                .map(dir -> new FileObject(bucketName, dir, "owner"))
+                .filter(dir -> !Objects.equals(dir, path))
+                .map(dir -> new FileObject(bucketName, dir))
                 .collect(Collectors.toList())
         );
         fileObjects.addAll(
             objectListing.getObjectSummaries().stream()
-               .filter(so -> !Objects.equals(so.getKey(), path) && !Objects.equals(so.getKey(), String.format("%s/", path)))
+               .filter(so -> !Objects.equals(so.getKey(), path))
                .map(so ->
                        new FileObject(
-                           so.getBucketName(),
+                           bucketName,
                            so.getKey(),
-                           so.getOwner().getDisplayName(),
+                           null,
                            so.getSize(),
                            LocalDateTime.ofInstant(so.getLastModified().toInstant(), ZoneOffset.systemDefault())))
                .collect(Collectors.toList())
@@ -62,11 +60,10 @@ public class AwsS3Service {
 
     public FileObject getFile(String bucketName, String path) {
         AmazonS3 amazonS3 = getAmazonS3();
-
         S3Object s3object = amazonS3.getObject(bucketName, path);
         return new FileObject(bucketName,
                               s3object.getKey(),
-                              "owner", // TODO owner in s3 does not use. use key?
+                              s3object.getObjectMetadata().getUserMetaDataOf("owner"),
                               s3object.getObjectMetadata().getContentLength(),
                               LocalDateTime.ofInstant(s3object.getObjectMetadata().getLastModified().toInstant(), ZoneOffset.systemDefault())
         );
@@ -78,24 +75,26 @@ public class AwsS3Service {
 
     public FileObject getFileContent(String bucketName, String path) {
         S3Object s3object = getAmazonS3().getObject(bucketName, path);
-        return new FileObject(bucketName, s3object.getKey(), "owner", s3object.getObjectMetadata().getContentLength(),
-                    LocalDateTime.ofInstant(s3object.getObjectMetadata().getLastModified().toInstant(), ZoneOffset.systemDefault()),
-                    s3object.getObjectContent());
+        return new FileObject(bucketName,
+                              s3object.getKey(),
+                              s3object.getObjectMetadata().getUserMetaDataOf("owner"),
+                              s3object.getObjectMetadata().getContentLength(),
+                              LocalDateTime.ofInstant(s3object.getObjectMetadata().getLastModified().toInstant(), ZoneOffset.systemDefault()),
+                              s3object.getObjectContent());
     }
 
     public void registerFile(String bucketName, FileObject fileObject) {
         AmazonS3 amazonS3 = getAmazonS3();
 
-        /*
-         * show warning below message.
-         * 警告:   No content length specified for stream data.  Stream contents will be buffered in memory and could result in out of memory errors.
-         */
-        PutObjectResult result = amazonS3.putObject(bucketName, fileObject.getPath(), fileObject.getContentStream(), null);
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(fileObject.getSize());
+        objectMetadata.addUserMetadata("owner", fileObject.getOwner());
+        amazonS3.putObject(bucketName, fileObject.getPath(), fileObject.getContentStream(), objectMetadata);
     }
 
     private AmazonS3 getAmazonS3() {
-        String accessKey = "...."; // TODO get config
-        String accessKeySecret = "...."; // TODO get config
+        String accessKey = " ... "; // TODO get config
+        String accessKeySecret = " ... "; // TODO get config
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, accessKeySecret);
         return new AmazonS3Client(credentials);
     }
