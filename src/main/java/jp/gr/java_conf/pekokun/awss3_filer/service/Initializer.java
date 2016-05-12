@@ -17,7 +17,7 @@ public class Initializer {
     private AclRepository aclRepository;
 
     public void initialize(@Observes @Initialized(ApplicationScoped.class) Object event) {
-        aclRepository.save(new Path("foo/"),
+        aclRepository.save(new Path("foo/", new Path.Owner("john")),
             Arrays.asList(
                 new AccessRule(AccessRule.Type.ALLOW, AccessRule.Control.READ, new GranteeUser("john")),
                 new AccessRule(AccessRule.Type.ALLOW, AccessRule.Control.READ, new GranteeUser("paul")),
@@ -25,7 +25,7 @@ public class Initializer {
             )
         );
 
-        aclRepository.save(new Path("bar/"),
+        aclRepository.save(new Path("bar/", new Path.Owner("john")),
             Arrays.asList(
                 new AccessRule(AccessRule.Type.DENY, AccessRule.Control.WRITE, new GranteeUser("john")),
                 new AccessRule(AccessRule.Type.DENY, AccessRule.Control.WRITE, new GranteeUser("paul"))

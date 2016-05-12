@@ -49,6 +49,7 @@ public class DemoResource {
     @GET
     public boolean isAllow(
         @QueryParam("path") String path,
+        @QueryParam("pathOwnerId") String pathOwnerId,
         @QueryParam("userId") String userId,
         @QueryParam("control") String control) {
 
@@ -56,7 +57,8 @@ public class DemoResource {
         user.setId(userId);
 
         return aclService.isAllow(
-            new jp.gr.java_conf.pekokun.awss3_filer.model.Path(path),
+            new jp.gr.java_conf.pekokun.awss3_filer.model.Path(path,
+                new jp.gr.java_conf.pekokun.awss3_filer.model.Path.Owner(pathOwnerId)),
             user,
             AccessRule.Control.valueOf(control));
     }

@@ -19,27 +19,32 @@ public class AclService {
 
     public boolean isAllow(Path path, User user, AccessRule.Control control) {
         List<AccessRule> accessRules = aclRepository.getAccessRules(path);
+
+        // FIXME no rules -> owner allow or public read allow
         if (accessRules.isEmpty()) {
-            return (control == AccessRule.Control.READ);
+            return (path.getOwner().getId().equals(user.getId()))
+                        || (control == AccessRule.Control.READ);
         }
 
+        // FIXME allow first
         List<AccessRule> allowAccessRules =
             accessRules.stream()
                 .filter(r -> r.getType() == AccessRule.Type.ALLOW)
                 .collect(Collectors.toList());
-
-        if (!allowAccessRules.isEmpty()) {
-            return allowAccessRules.stream()
-                .anyMatch(r -> r.getControl() == control && r.getGrantee().getExpression().equals(user.getId()));
-        }
+        boolean allow = allowAccessRules.isEmpty() || path.getOwner().getId().equals(user.getId()) ?
+                  true
+                : allowAccessRules.stream()
+                      .anyMatch(r -> r.getControl() == control && r.getGrantee().getExpression().equals(user.getId()));
 
         List<AccessRule> denyAccessRules =
             accessRules.stream()
                 .filter(r -> r.getType() == AccessRule.Type.DENY)
                 .collect(Collectors.toList());
 
-        return !denyAccessRules.stream()
+        boolean deny = denyAccessRules.stream()
                     .anyMatch(r -> r.getControl() == control && r.getGrantee().getExpression().equals(user.getId()));
+
+        return (allow && !deny);
     }
 
 }
